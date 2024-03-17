@@ -27,13 +27,24 @@ if ($action == "login") {
     register($db);
 } elseif ($action == "forgot") {
     forgot($db);
+}elseif ($action == "createLobby") {
+    createLobby($db);
 }
+elseif ($action == "closeLobby") {
+    closeLobby($db);
+}
+
 
 
 function login($db){
     $email = $_POST['email'];
     $password= $_POST['password'];
     $name ="";
+    $id = "";
+    $gender = "";
+    $phone = "";
+    $birthdate = "";
+    $returnData = array();
 
     // Prepare SQL statement
     $statement = $db->prepare("SELECT * FROM `user` WHERE `email`=?");
@@ -44,21 +55,32 @@ function login($db){
     if ($result->num_rows > 0) {
         // Output data of each row
         while ($row = $result->fetch_assoc()) {
-            $passDB = $row['password'];      
-            $name = $row['name'];
+            $returnData["idplayer"] = $row["id"];
+            $returnData["name"] = $row['name']; 
+            $returnData["gender"] = $row['gender']; 
+            $returnData["phone"] = $row['phone']; 
+            $returnData["birthday"] = $row['birthday']; 
+            $returnData["phone"] = $row["phone"];
+            $returnData["status"] = "1";
+            $returnData["msg"] = "Login Successfully";
+            $passDB = $row['password'];                  
         }
-
-        echo `$password  -  $passDB`;
+        
         if(password_verify($password, $passDB)){
-            echo 'User verified successfully!';
+        //    echo "ID: ".$id. " Name: ".$name. " Gender ".$gender. " Phone ".$phone. " Birthdate ".$birthdate;
+           echo json_encode($returnData);
+           return;
         }
         else{
-            echo "Wrong Password";
-            echo $password. " - ".$passDB;
+            $returnData["status"] = "2";
+            echo "Wrong Password";            
+            return;
         }
 
     } else {
+        $returnData["status"] = "3";
         echo "User Not Found";
+        return;
     }
     $statement->close();
     $db->close();
@@ -86,6 +108,13 @@ function register($db){
     $password=  password_hash($_POST['q16_password'], PASSWORD_DEFAULT);
     $conppass =  password_hash($_POST['q17_conpassword'], PASSWORD_DEFAULT);
     $name =  $_POST['q1_name'];
+    $gender = $_POST['q6_male'];
+    $phone = $_POST['q12_email12'];   
+    $address = $_POST['q14_address14'];
+    $birthdate_DD = $_POST['q15_dateDay'];
+    $birthdate_MM = $_POST['q15_dateMonth'];
+    $birthdate_YY = $_POST['q15_dateYear'];
+    $birthdate = $_POST['q18_birthdate'];
 
     // Prepare SQL statement for check existing user
     // $statement = $db->prepare("SELECT * FROM `user` WHERE `email`=?");
@@ -99,7 +128,7 @@ function register($db){
 
     $result = $statement->get_result();
     if ($result->num_rows > 0) {        
-        echo '{"success":false,"msg":"Users Exists"}';   
+        echo '{"status":"failed","msg":"Users Exists"}';   
         return;   
     } 
     $statement->close();
@@ -117,23 +146,80 @@ function register($db){
 
     // Prepare SQL statement for insertion
     // $statement4 = "INSERT INTO Users (name, email, Password) VALUES ('$name', '$email', '$password')";
-    $statement = $db->prepare ("INSERT INTO User (name, email, Password) VALUES (?,?,?)");
-    $statement->bind_param("sss", $name, $email, $password);    
+    $statement = $db->prepare ("INSERT INTO User (name, email, Password,gender,phone,address,birthday) VALUES (?,?,?,?,?,?,?)");
+    // $Birthday = $birthdate_DD."-".$birthdate_MM."-".$birthdate_YY;
+    $statement->bind_param("sssssss", $name, $email, $password,$gender,$phone,$address,$birthdate);    
 
     // Execute insert statement
     if($statement->execute()) {
-        echo '{"success":true,"msg":"User registered successfully"}';
+        echo '{"status":"success","msg":"User registered successfully"}';
 
         $statement->close();
-        return '{"success":true,"msg":"User registered successfully"}';
+        return '{"status":"success","msg":"User registered successfully"}';
     }
 
     // Something went wrong and user was not registered
-    echo '{"success":false,"msg":"Unable to register user"}';
+    echo '{"status":"failed","msg":"Unable to register user"}';
 }
 
 function forgot($db){
+    
     echo '{"success":false,"msg":"Feature not yet implemented"}';
+}
+function createLobby($db){
+    
+    $idPlayer = $_POST['idPlayer'];
+    $lobbyId = 0;
+    $playerName = "";
+    $ceklobbyid = true;
+    // echo $idPlayer." - ". $lobbyId;
+    do {
+        $lobbyId = rand(1,9999);
+        // $lobbyId = 7503;
+        $statement = $db->prepare("SELECT * FROM `pvplobby` WHERE `id`=?");
+        $statement->bind_param("s", $lobbyId);
+        $statement->execute();
+        $result = $statement->get_result();
+        if ($result->num_rows > 0) {
+            $ceklobbyid  = false;
+            // echo "Lobby ID Kembar <br>";
+        }
+        else{
+            $ceklobbyid  = true;
+        }
+    } while ($ceklobbyid == false);
+    
+    $statement = $db->prepare ("INSERT INTO pvplobby (id, idplayer1) VALUES (?,?)");
+    $statement->bind_param("ss", $lobbyId, $idPlayer);     
+    if($statement->execute()) {
+        // echo 'Lobby Created!';
+
+        $statement->close();       
+        $returnData = array("idplayer" => $idPlayer);
+        $returnData["lobbyId"] = $lobbyId; 
+        echo json_encode($returnData);
+    }
+    else{    
+        // echo "Test 3- ".$idPlayer." - ". $lobbyId;  
+        echo $statement->error;
+    }
+}   
+
+function closeLobby($db){
+    $idPlayer = $_POST['idPlayer'];
+    $lobbyId = $_POST['idLobby'];
+    $statement = $db->prepare ("delete from `pvplobby` where `id`= ? AND `idplayer1` = ? ");
+    $statement->bind_param("ss", $lobbyId, $idPlayer);     
+    if($statement->execute()) {
+        // echo 'Lobby Created!';
+        $statement->close();       
+        echo "success";
+        return;
+    }
+    else{    
+        // echo "Test 3- ".$idPlayer." - ". $lobbyId;  
+        echo $statement->error;
+    }
 }
 
 exit();
