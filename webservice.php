@@ -61,6 +61,8 @@ function login($db){
             $returnData["phone"] = $row['phone']; 
             $returnData["birthday"] = $row['birthday']; 
             $returnData["phone"] = $row["phone"];
+            $returnData["address"] = $row["address"];
+            $returnData["email"] = $row["email"];
             $returnData["status"] = "1";
             $returnData["msg"] = "Login Successfully";
             $passDB = $row['password'];                  
