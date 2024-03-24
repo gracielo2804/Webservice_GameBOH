@@ -33,6 +33,12 @@ if ($action == "login") {
 elseif ($action == "closeLobby") {
     closeLobby($db);
 }
+elseif ($action == "joinLobby") {
+    joinLobby($db);
+}
+elseif ($action == "updateWaitLobby") {
+    updateWaitLobby($db);
+}
 
 
 
@@ -174,37 +180,54 @@ function createLobby($db){
     $lobbyId = 0;
     $playerName = "";
     $ceklobbyid = true;
-    // echo $idPlayer." - ". $lobbyId;
-    do {
-        $lobbyId = rand(1,9999);
-        // $lobbyId = 7503;
-        $statement = $db->prepare("SELECT * FROM `pvplobby` WHERE `id`=?");
-        $statement->bind_param("s", $lobbyId);
-        $statement->execute();
-        $result = $statement->get_result();
-        if ($result->num_rows > 0) {
-            $ceklobbyid  = false;
-            // echo "Lobby ID Kembar <br>";
-        }
-        else{
-            $ceklobbyid  = true;
-        }
-    } while ($ceklobbyid == false);
-    
-    $statement = $db->prepare ("INSERT INTO pvplobby (id, idplayer1) VALUES (?,?)");
-    $statement->bind_param("ss", $lobbyId, $idPlayer);     
-    if($statement->execute()) {
-        // echo 'Lobby Created!';
 
-        $statement->close();       
-        $returnData = array("idplayer" => $idPlayer);
-        $returnData["lobbyId"] = $lobbyId; 
-        echo json_encode($returnData);
+    $statement = $db->prepare("SELECT * FROM `pvplobby` WHERE `idplayer1`=?");
+    $statement->bind_param("s", $idPlayer);
+    $statement->execute();
+
+    $result = $statement->get_result();
+    if ($result->num_rows > 0) {
+        $returnData["lobbyId"] = "";
+        $returnData["idplayer"] = "";        
+        while ($row = $result->fetch_assoc()) {
+            $returnData["lobbyId"] = $row["id"];
+            $returnData["idplayer"] = $row['idplayer1'];      
+            echo json_encode($returnData);
+            return;     
+        }
     }
-    else{    
-        // echo "Test 3- ".$idPlayer." - ". $lobbyId;  
-        echo $statement->error;
-    }
+    else{
+        do {
+            $lobbyId = rand(1,9999);
+            // $lobbyId = 7503;
+            $statement = $db->prepare("SELECT * FROM `pvplobby` WHERE `id`=?");
+            $statement->bind_param("s", $lobbyId);
+            $statement->execute();
+            $result = $statement->get_result();
+            if ($result->num_rows > 0) {
+                $ceklobbyid  = false;
+                // echo "Lobby ID Kembar <br>";
+            }
+            else{
+                $ceklobbyid  = true;
+            }
+        } while ($ceklobbyid == false);
+        
+        $statement = $db->prepare ("INSERT INTO pvplobby (id, idplayer1) VALUES (?,?)");
+        $statement->bind_param("ss", $lobbyId, $idPlayer);     
+        if($statement->execute()) {
+            // echo 'Lobby Created!';
+    
+            $statement->close();       
+            $returnData = array("idplayer" => $idPlayer);
+            $returnData["lobbyId"] = $lobbyId; 
+            echo json_encode($returnData);
+        }
+        else{    
+            // echo "Test 3- ".$idPlayer." - ". $lobbyId;  
+            echo $statement->error;
+        }
+    }   
 }   
 
 function closeLobby($db){
@@ -223,6 +246,119 @@ function closeLobby($db){
         echo $statement->error;
     }
 }
+
+function joinLobby($db){
+    $idPlayer = $_POST['idPlayer'];
+    $lobbyId = $_POST['idLobby'];
+    $statement = $db->prepare ("select * from `pvplobby` where `id`= ?");
+    $statement->bind_param("s", $lobbyId);   
+    $statement->execute();
+
+    $result = $statement->get_result();
+    if ($result->num_rows > 0) {
+        // Output data of each row
+        while ($row = $result->fetch_assoc()) {
+            $returnData["idlobby"] = $row["id"];
+            $returnData["idplayer1"] = $row['idplayer1'];
+            $returnData["status"] = "2";//Join Lobby Sendiri yang dibuat sebelumnya
+        }
+        if ($returnData["idplayer1"] == $idPlayer){
+            echo json_encode($returnData);
+            return;
+        }
+        else{
+            $statement = $db->prepare ("select * from `user` where `id`= ?");
+            $statement->bind_param("s", $returnData['idplayer1']);   
+            $statement->execute();
+            
+            $result2 = $statement->get_result();
+            if ($result2->num_rows > 0) {     
+                $returnData["nameplayer1"]= "";
+                while ($row = $result2->fetch_assoc()) {
+                    $returnData["idplayer1"] = $row["id"];
+                    $returnData["nameplayer1"] = $row['name'];  
+                    // echo "Cek Isi Data : ". $row['name']. " - ". $row["id"];                 
+                }
+                $statement = $db->prepare ("update `pvplobby` set `idPlayer2` = ? where `id`= ?");                
+                $statement->bind_param("ss", $idPlayer,$returnData["idlobby"]); 
+                if($statement->execute()) {                    
+                    $returnData["msg"] = "Success Join Lobby";
+                    $returnData["status"] = "1";//Success Join Lobby
+                    echo json_encode($returnData);
+                    return;
+                }
+            }
+            else{
+                $returnData["msg"] = "Opponent Player ID Not Found";
+                $returnData["status"] = "-2";//Player ID lawan tidak ditemukan
+                echo json_encode($returnData);
+                return;
+            }
+        }
+    }
+       
+    else{    
+        // echo "Test 3- ".$idPlayer." - ". $lobbyId;  
+        $returnData["msg"] = "Lobby ID not found";
+        $returnData["status"] = "-1";//Lobby ID yang diinput tidak ditemukan
+        echo json_encode($returnData);
+        return;
+    }
+}
+
+function updateWaitLobby($db){
+    $idPlayer = $_POST['idPlayer'];
+    $lobbyId = $_POST['idLobby'];
+    $statement = $db->prepare ("select * from `pvplobby` where `id`= ? and `idplayer1` = ?");
+    $statement->bind_param("ss", $lobbyId,$idPlayer);   
+    $statement->execute();
+    $idplayer2temp ="";
+
+    $result = $statement->get_result();
+    if ($result->num_rows > 0) {
+        $cekuser = false;
+        while ($row = $result->fetch_assoc()) {
+            if(!isset($row["idplayer2"]) || $row["idplayer2"]!=null || $row["idplayer2"]!=""){
+                $idplayer2temp = $row["idplayer2"];
+                $cekuser = true;
+            }
+        }
+        if($cekuser){
+            $statement2 = $db->prepare ("select * from `user` where `id`= ?");
+            $statement2->bind_param("s",  $idplayer2temp);   
+            $statement2->execute();
+            $returnData["idplayer2"]= "";
+            $returnData["nameplayer2"]= "";
+            $result2 = $statement2->get_result();
+            if ($result2->num_rows > 0) {     
+                while ($row = $result2->fetch_assoc()) {                   
+                    $returnData["idplayer2"]= $row["id"];
+                    $returnData["nameplayer2"]= $row["name"];
+                }
+                $returnData["msg"] = "Opponent Found";
+                $returnData["status"] = "1";//Lobby sudah ada lawan
+                echo json_encode($returnData);
+                return;
+            }
+            
+        }
+        else{
+            $returnData["msg"] = "No Opponent";
+            $returnData["status"] = "0";//Masih belum ada musuh/lawan/player2 di Lobby
+            echo json_encode($returnData);
+            return;
+        }
+    }
+    else{
+        $returnData["msg"] = "Lobby not found";
+        $returnData["status"] = "-1";//Lobby tidak ditemukan
+        echo json_encode($returnData);
+        return;
+    }
+
+}
+
+
 
 exit();
 ?>
