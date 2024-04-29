@@ -913,6 +913,49 @@ function createMatch($db){
         }
         $mapping1 = implode("\n",$usedMapping1);
         $MappingAll = $invertedMapping2."\n".$mapping1;
+
+        //Add Cielo Mapping Kepemilikan
+        $MappingAllCopy = $MappingAll;
+        $exlplodeMappingAll =  explode("\n",$MappingAllCopy);
+        $AllKepemilikan = "";
+        for ($i=0; $i <= 13; $i++) { 
+            $kepemilikkan = array();
+            $line = $exlplodeMappingAll[$i];
+            $substr = explode(";",$line);
+            $result = "";
+            for ($j=0; $j < count($substr); $j++) { 
+                if($i < 6) //Player2
+                {            
+                    if ($substr[$j] != "" || !isset($substr[$j])) {
+                        array_push($kepemilikkan,"2");
+                    }
+                    else{
+                        array_push($kepemilikkan,"");
+                    }
+                }
+                else if($i> 7)//Player1
+                {
+                    if ($substr[$j] != "" || !isset($substr[$j])) {
+                        array_push($kepemilikkan,"1");
+                    }
+                    else{
+                        array_push($kepemilikkan,"");
+                    }
+                }
+                else{               
+                    array_push($kepemilikkan,"");
+                }            
+            }
+            
+            $result = implode(";",$kepemilikkan);
+            if($i != 13){
+                $AllKepemilikan = $AllKepemilikan.$result."\n";
+            }
+            else{
+                $AllKepemilikan = $AllKepemilikan.$result;
+            }
+        }
+        //End Add Cielo Mapping Kepemilikan
         // echo "Cek5\n";
         $date = date('Y-m-d H:i:s');
         $queryInsert = "INSERT into pvpmatch values (
