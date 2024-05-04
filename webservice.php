@@ -43,6 +43,9 @@ elseif ($action == "joinLobby") {
 elseif ($action == "updateWaitLobby") {
     updateWaitLobby($db);
 }
+elseif ($action =="quickJoinLobby"){
+    quickJoinLobby($db);
+}
 elseif ($action =="saveStrategy"){
     saveStrategy($db);
 }
@@ -54,6 +57,17 @@ elseif ($action =="createMatch"){
 }
 
 function test($db){
+
+    echo nl2br("Random:".rand(0,9)."\n\n");
+    $array = array();
+    $fruit = array();
+    for ($i=0; $i < 3; $i++) { 
+        $fruit["Fruit"] = "Apple";
+        $fruit["Taste"] = "Sweet";
+        array_push($array,$fruit);
+    }
+    var_dump($array);
+
     $query = "SELECT * from strategy where id = '3'";
     $result = mysqli_query($db,$query);
     $mapping1 = "";
@@ -594,7 +608,8 @@ function joinLobby($db){
                 $result3 = mysqli_query($db, $query3);    
                 if (mysqli_num_rows($result3)>0) { 
                     while ($row = mysqli_fetch_assoc($result3)) {
-                        $returnData["strategyplayer1"] = $row['strategyname'];  
+                        $returnData["strategyplayer1"] = $row['id'];  
+                        $returnData["strategynameplayer1"] = $row['strategyname'];  
                     }
                 }    
 
@@ -996,6 +1011,101 @@ function createMatch($db){
 
     }
 
+}
+
+function quickJoinLobby($db){
+    $idPlayer = $_POST['idPlayer'];  
+    $idStrategy = $_POST['idStrategy'];
+    $returnData = array();
+    
+    $query = "SELECT * FROM pvplobby WHERE idplayer1 = '$idPlayer'";
+    $result = mysqli_query($db, $query);
+    if (mysqli_num_rows($result)>0) {//Join Lobby Sendiri
+       
+        $returnData["idlobby"] = "";
+        $returnData["idplayer"] = "";        
+        while ($row = mysqli_fetch_assoc($result)) {
+            $returnData["idlobby"] = $row["id"];
+            $returnData["idplayer1"] = $row['idplayer1'];                  
+        }
+        $lobbyid = $returnData["idlobby"];
+        $queryUpdate = "UPDATE pvplobby set strategyplayer1 = $idStrategy where id = $lobbyid";    
+        $resultUpdate = mysqli_query($db, $queryUpdate);    
+        if($resultUpdate) {
+            $returnData["msg"] = "Join Own Lobby";
+            $returnData["status"] = "2";
+            echo json_encode($returnData);    
+            mysqli_close($db);
+        }        
+        return;           
+    }
+
+    $query = "SELECT * from pvplobby where idplayer2 is null";
+    $result = mysqli_query($db,$query);
+    if(mysqli_num_rows($result)>0){ //Jika Ada lobby yang player2 kosong
+        $availableLobby = array();
+        $dataLobby = array();
+        $lobbycount = 0;
+
+        while($row = mysqli_fetch_assoc($result)){
+           $dataLobby["id"] =$row["id"];
+           $dataLobby["idplayer1"] =$row["idplayer1"];
+           $dataLobby["strategyplayer1"] =$row["strategyplayer1"];
+          
+           array_push($availableLobby,$dataLobby);
+           $lobbycount++;
+        }
+        $selectedindex = rand(0,$lobbycount-1);
+
+        $queryupdate = "UPDATE pvplobby set idplayer2 = '$idPlayer', strategyplayer2 = '$idStrategy' where id= '".$availableLobby[$selectedindex]["id"]."' ";
+        $resultUpdate = mysqli_query($db, $queryupdate);    
+        
+        $query = "SELECT a.name, b.strategyname FROM user a, strategy b WHERE b.id = '".$availableLobby[$selectedindex]["strategyplayer1"]."' ";
+        $result = mysqli_query($db, $query);
+        if (mysqli_num_rows($result)>0) {
+            while ($row = mysqli_fetch_assoc($result)) {
+                $returnData["nameplayer1"] = $row["name"];
+                $returnData["strategynameplayer1"] =$row["strategyname"];           
+            }
+        }
+        $returnData["idlobby"] = $availableLobby[$selectedindex]["id"];
+        $returnData["idplayer1"] = $availableLobby[$selectedindex]["idplayer1"];
+        $returnData["strategyplayer1"] = $availableLobby[$selectedindex]["strategyplayer1"];
+
+        if($resultUpdate) {
+            $returnData["msg"] = "Success Join Lobby";
+            $returnData["status"] = "1";//Success Join Lobby
+            echo json_encode($returnData);    
+            mysqli_close($db);
+            return;
+        }   
+    }
+    else{//Jika Ada lobby tidak ditemukan
+        do {
+            $lobbyId = rand(1,9999);
+            // $lobbyId = 7503;
+            $query2 = "SELECT * FROM pvplobby WHERE id = '$lobbyId'";
+            $result2 = mysqli_query($db, $query2);                        
+            if ($result2->num_rows > 0) {
+                $ceklobbyid  = false;
+                // echo "Lobby ID Kembar <br>";
+            }
+            else{
+                $ceklobbyid  = true;
+            }
+        } while ($ceklobbyid == false);
+        
+        $queryInsert = "INSERT INTO pvplobby (id, idplayer1,strategyplayer1) VALUES ('$lobbyId','$idPlayer',$idStrategy)";    
+        $resultInsert = mysqli_query($db, $queryInsert);    
+        if($resultInsert) {
+            $returnData = array("idplayer" => $idPlayer);
+            $returnData["idlobby"] = $lobbyId; 
+            $returnData["msg"] = "Success Create Lobby";
+            $returnData["status"] = "3";//Create Lobby
+            echo json_encode($returnData); 
+            mysqli_close($db);   
+        } 
+    }
 }
 
 
