@@ -942,7 +942,7 @@ function createMatch($db){
                 if($i < 6) //Player2
                 {            
                     if ($substr[$j] != "" || !isset($substr[$j])) {
-                        array_push($kepemilikkan,"2");
+                        array_push($kepemilikkan,$idplayer2);
                     }
                     else{
                         array_push($kepemilikkan,"");
@@ -951,7 +951,7 @@ function createMatch($db){
                 else if($i> 7)//Player1
                 {
                     if ($substr[$j] != "" || !isset($substr[$j])) {
-                        array_push($kepemilikkan,"1");
+                        array_push($kepemilikkan,$idplayer1);
                     }
                     else{
                         array_push($kepemilikkan,"");
@@ -980,7 +980,11 @@ function createMatch($db){
             $strategyplayer1,            
             $idplayer2,
             $strategyplayer2,
-            '$MappingAll'            
+            '$MappingAll',         
+            '$AllKepemilikan',
+            $idplayer1,
+            '0',
+            null       
         )";
         $resultInsert = mysqli_query($db,$queryInsert);
         if($resultInsert){
