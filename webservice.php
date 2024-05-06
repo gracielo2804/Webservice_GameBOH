@@ -55,6 +55,21 @@ elseif ($action =="getStrategy"){
 elseif ($action =="createMatch"){
     createMatch($db);
 }
+elseif ($action =="getMapping"){
+    getMapping($db);
+}
+elseif ($action =="getTurn"){
+    getTurn($db);
+}
+elseif ($action =="updateMatchData"){
+    updateMatchData($db);
+}
+elseif ($action =="insertLogMatch"){
+    insertLogMatch($db);
+}
+elseif ($action =="getLogMatch"){
+    getLogMatch($db);
+}
 
 function test($db){
 
@@ -1111,6 +1126,133 @@ function quickJoinLobby($db){
         } 
     }
 }
+
+function getMapping($db){
+    //$email = $_POST['email'];
+    //$password= $_POST['password'];
+    $idmatch = $_POST['id'];
+    $returnData = array();
+    $query = "SELECT * FROM pvpmatch WHERE id = $idmatch";
+    $result = mysqli_query($db, $query);
+    if(mysqli_num_rows($result)>0){
+        while($row = mysqli_fetch_assoc($result)){
+            $returnData["id"] = $row["id"];
+            $returnData["time"] = $row['time']; 
+            $returnData["idplayer1"] = $row['idplayer1']; 
+            $returnData["strategyplayer1"] = $row['strategyplayer1']; 
+            $returnData["idplayer2"] = $row['idplayer2']; 
+            $returnData["strategyplayer2"] = $row["strategyplayer2"];
+            $returnData["mapping"] = $row["mapping"];       
+            $returnData["mappingkepemilikan"] = $row["mappingkepemilikan"];  
+        }
+        echo json_encode($returnData);
+        mysqli_close($db);
+        return;
+    } 
+}
+
+function getTurn($db){
+    //$email = $_POST['email'];
+    //$password= $_POST['password'];
+    $idmatch = $_POST['id'];
+    $returnData = array();
+    $query = "SELECT playerturn, turnstreak FROM pvpmatch WHERE id = $idmatch";
+    $result = mysqli_query($db, $query);
+    if(mysqli_num_rows($result)>0){
+        while($row = mysqli_fetch_assoc($result)){
+            $returnData["playerturn"] = $row["playerturn"];    
+            $returnData["turnstreak"] = $row["turnstreak"];      
+        }
+        echo json_encode($returnData);
+        mysqli_close($db);
+        return;
+    } 
+}
+
+function updateMatchData($db){
+    $mapping = $_POST['mapping'];
+    $mappingkepemilikan = $_POST['mappingkepemilikan'];
+    $turn = $_POST['playerturn'];
+    $playerturn = intval($turn);
+    $idmatch = $_POST['id'];
+    $turnstreak = $_POST['turnstreak'];
+    $statusmatch = $_POST['statusmatch'];
+    $pemenang = $_POST['pemenang'];
+    //$idmatch = 2;
+    $queryupdate = "";
+    if ($statusmatch == 1 && $pemenang !== null && $pemenang !== "") {
+        $queryupdate = "UPDATE pvpmatch set mapping = '$mapping', mappingkepemilikan = '$mappingkepemilikan', playerturn = $playerturn, turnstreak = $turnstreak, statusmatch = $statusmatch,
+        pemenang = $pemenang  where id= $idmatch";
+    } else {
+        $queryupdate = "UPDATE pvpmatch set mapping = '$mapping', mappingkepemilikan = '$mappingkepemilikan', playerturn = $playerturn, turnstreak = $turnstreak where id= $idmatch";
+    }
+    $resultUpdate = mysqli_query($db, $queryupdate);    
+    if($resultUpdate) {
+        $returnData["msg"] = "Success Join Lobby";
+        $returnData["status"] = "1";//Success Join Lobby
+        echo json_encode($returnData);    
+        mysqli_close($db);
+        return;
+    }   
+    else{
+        echo mysqli_error($db);
+        return;
+    }           
+}
+
+function insertLogMatch($db){
+    $idMatch = $_POST['idMatch'];
+    $barisAsal = $_POST['barisAsal'];
+    $kolomAsal = $_POST['kolomAsal'];
+    $barisTujuan = $_POST['barisTujuan'];
+    $kolomTujuan = $_POST['kolomTujuan'];
+    $idPlayer = $_POST['idPlayer'];
+    $queryCreate = "INSERT INTO logmatch        
+        VALUES (
+        '',
+        '$idMatch',
+        '$barisAsal',
+        '$kolomAsal',
+        '$barisTujuan',
+        '$kolomTujuan',
+        '$idPlayer')";
+
+    $resultCreate = mysqli_query($db, $queryCreate);
+
+    // Execute insert statement
+    if($resultCreate) {
+        echo '{"status":"1","msg":"Log successfully saved"}';
+        mysqli_close($db);
+        return;
+    }
+
+    // Something went wrong and user was not registered
+    echo '{"status":"-1","msg":"Unable to save Log "}';
+    mysqli_close($db);
+    return;
+
+}
+
+function getLogMatch($db){
+    $idMatch = $_POST['idMatch'];
+    $returnData = array();
+    $query = "SELECT * FROM logmatch WHERE idMatch = $idMatch ORDER BY id DESC LIMIT 1";
+    $result = mysqli_query($db, $query);
+    if(mysqli_num_rows($result)>0){
+        while($row = mysqli_fetch_assoc($result)){
+            $returnData["barisAsal"] = $row["barisAsal"];       
+            $returnData["kolomAsal"] = $row["kolomAsal"];       
+            $returnData["barisTujuan"] = $row["barisTujuan"];       
+            $returnData["kolomTujuan"] = $row["kolomTujuan"];       
+            $returnData["idPlayer"] = $row["idPlayer"];       
+        }
+        echo json_encode($returnData);
+        mysqli_close($db);
+        return;
+    } 
+    
+}
+
 
 
 exit();
