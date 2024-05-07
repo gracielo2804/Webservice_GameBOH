@@ -70,6 +70,9 @@ elseif ($action =="insertLogMatch"){
 elseif ($action =="getLogMatch"){
     getLogMatch($db);
 }
+elseif ($action =="getDataJoinMatch"){
+    getDataJoinMatch($db);
+}
 
 function test($db){
 
@@ -1010,6 +1013,7 @@ function createMatch($db){
             $returnData["idplayer2"] = $idplayer2;
             $returnData["strategyplayer2"] = $strategyplayer2;
             $returnData["mapping"] = $MappingAll;
+            $returnData["mappingkepemilkan"] = $AllKepemilikan;
             $returnData["status"] = "1";
             $returnData["msg"] = "Match Created";
             
@@ -1253,6 +1257,30 @@ function getLogMatch($db){
     
 }
 
+function getDataJoinMatch($db){
+    $idPlayer = $_POST['idPlayer'];  
+    $idStrategy = $_POST['idStrategy'];
+    $returnData = array();
+    $query = "SELECT * FROM pvpmatch where idplayer2 = '$idPlayer' and strategyplayer2 = '$idStrategy' and statusmatch = '0' limit 1";
+    $result = mysqli_query($db,$query);
+    if(mysqli_num_rows($result)>0){
+        while($row = mysqli_fetch_assoc($result)){
+            $returnData["idmatch"] = $row["id"];            
+            $returnData["idplayer1"] = $row["idplayer1"];
+            $returnData["strategyplayer1"] = $row["strategyplayer1"];
+            $returnData["idplayer2"] = $row["idplayer2"];
+            $returnData["strategyplayer2"] = $row["strategyplayer2"];
+            $returnData["mapping"] = $row["mapping"];
+            $returnData["mappingkepemilkan"] = $row["mappingkepemilikkan"];
+            $returnData["status"] = "1";
+            $returnData["msg"] = "Match Created";
+        }
+
+        echo json_encode($returnData); 
+        mysqli_close($db);   
+        return;
+    }    
+}
 
 
 exit();
