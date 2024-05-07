@@ -1271,7 +1271,7 @@ function getDataJoinMatch($db){
             $returnData["idplayer2"] = $row["idplayer2"];
             $returnData["strategyplayer2"] = $row["strategyplayer2"];
             $returnData["mapping"] = $row["mapping"];
-            $returnData["mappingkepemilkan"] = $row["mappingkepemilikkan"];
+            $returnData["mappingkepemilkan"] = $row["mappingkepemilikan"];
             $returnData["status"] = "1";
             $returnData["msg"] = "Match Created";
         }
