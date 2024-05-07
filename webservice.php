@@ -73,6 +73,9 @@ elseif ($action =="getLogMatch"){
 elseif ($action =="getDataJoinMatch"){
     getDataJoinMatch($db);
 }
+elseif ($action =="updatePemenang"){
+    updatePemenang($db);
+}
 
 function test($db){
 
@@ -1160,12 +1163,14 @@ function getTurn($db){
     //$password= $_POST['password'];
     $idmatch = $_POST['id'];
     $returnData = array();
-    $query = "SELECT playerturn, turnstreak FROM pvpmatch WHERE id = $idmatch";
+    $query = "SELECT playerturn, turnstreak, statusmatch, pemenang FROM pvpmatch WHERE id = $idmatch";
     $result = mysqli_query($db, $query);
     if(mysqli_num_rows($result)>0){
         while($row = mysqli_fetch_assoc($result)){
             $returnData["playerturn"] = $row["playerturn"];    
             $returnData["turnstreak"] = $row["turnstreak"];      
+            $returnData["statusmatch"] = $row["statusmatch"];      
+            $returnData["pemenang"] = $row["pemenang"];      
         }
         echo json_encode($returnData);
         mysqli_close($db);
@@ -1280,6 +1285,25 @@ function getDataJoinMatch($db){
         mysqli_close($db);   
         return;
     }    
+}
+
+function updatePemenang($db){
+    $idmatch = $_POST['id'];
+    $statusmatch = $_POST['statusmatch'];
+    $pemenang = $_POST['pemenang'];
+    $queryupdate = "UPDATE pvpmatch set statusmatch = $statusmatch, pemenang = $pemenang where id= $idmatch";
+    $resultUpdate = mysqli_query($db, $queryupdate);    
+    if($resultUpdate) {
+        $returnData["msg"] = "Success Join Lobby";
+        $returnData["status"] = "1";//Success Join Lobby
+        echo json_encode($returnData);    
+        mysqli_close($db);
+        return;
+    }   
+    else{
+        echo mysqli_error($db);
+        return;
+    }           
 }
 
 
