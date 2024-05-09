@@ -1004,6 +1004,7 @@ function createMatch($db){
             '$MappingAll',         
             '$AllKepemilikan',
             $idplayer1,
+            '1',
             '0',
             null       
         )";
@@ -1253,12 +1254,19 @@ function getLogMatch($db){
             $returnData["kolomAsal"] = $row["kolomAsal"];       
             $returnData["barisTujuan"] = $row["barisTujuan"];       
             $returnData["kolomTujuan"] = $row["kolomTujuan"];       
-            $returnData["idPlayer"] = $row["idPlayer"];       
+            $returnData["idPlayer"] = $row["idPlayer"];   
+            $returnData["status"] = "1";           
         }
         echo json_encode($returnData);
         mysqli_close($db);
         return;
     } 
+    else{
+        $returnData["status"] = "-1";        
+        echo json_encode($returnData); 
+        mysqli_close($db);   
+        return;
+    }  
     
 }
 
@@ -1284,7 +1292,14 @@ function getDataJoinMatch($db){
         echo json_encode($returnData); 
         mysqli_close($db);   
         return;
-    }    
+    }  
+    else{
+        $returnData["status"] = "-1";
+        $returnData["msg"] = "Match Not Found";
+        echo json_encode($returnData); 
+        mysqli_close($db);   
+        return;
+    }  
 }
 
 function updatePemenang($db){
