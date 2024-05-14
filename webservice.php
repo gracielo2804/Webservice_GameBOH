@@ -76,6 +76,9 @@ elseif ($action =="getDataJoinMatch"){
 elseif ($action =="updatePemenang"){
     updatePemenang($db);
 }
+elseif ($action =="deleteStrategy"){
+    deleteStrategy($db);
+}
 
 function test($db){
 
@@ -1319,6 +1322,26 @@ function updatePemenang($db){
         echo mysqli_error($db);
         return;
     }           
+}
+
+function deleteStrategy($db){
+    $idStrategy = $_POST["idStrategy"];
+    $query = "DELETE FROM strategy where id=$idStrategy";
+    $result = mysqli_query($db,$query);
+    if($result){
+        $returnData["msg"] = "Success Delete Strategy";
+        $returnData["status"] = "1";
+        echo json_encode($returnData);    
+        mysqli_close($db);
+        return;
+    }
+    else{
+        $returnData["msg"] = "Delete Failed";
+        $returnData["status"] = "0";//Success Join Lobby
+        echo json_encode($returnData);    
+        mysqli_close($db);
+        return;
+    }
 }
 
 
