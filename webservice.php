@@ -195,7 +195,7 @@ function test($db){
         // $numbers = explode(";", $linecontain);
 
         // // Step 2: Find the indices of non-empty values
-        // $nonEmptyIndices = array_keys(array_filter($numbers, function($value) { return $value !== ''; }));
+        // $nonEmptyIndices = array_keys(array_filter($numbers, function($value) { return $value !== NULL; }));
 
         // // Step 3: Invert the array of non-empty values
         // $invertedNumbers = array_reverse(array_intersect_key($numbers, array_flip($nonEmptyIndices)));
@@ -209,7 +209,7 @@ function test($db){
         // $invertedString = implode(";", $numbers);
         //===========================================================================================================
         // Step 2: Find the indices of non-empty values
-        // $nonEmptyIndices = array_keys(array_filter($numbers, function($value) { return $value !== ''; }));
+        // $nonEmptyIndices = array_keys(array_filter($numbers, function($value) { return $value !== NULL; }));
 
         // // Step 3: Invert the array of non-empty values
         // $invertedNumbers = array_reverse(array_intersect_key($numbers, array_flip($nonEmptyIndices)));
@@ -225,7 +225,7 @@ function test($db){
 
         // // Step 6: If the string originally had a trailing semicolon, add it back
         // if ($linecontain[strlen($linecontain) - 1] === ';') {
-        //     $numbers[] = '';
+        //     $numbers[] = NULL;
         // }
 
         // // Step 7: Join the modified array elements back into a string
@@ -793,7 +793,7 @@ function updateWaitLobby($db){
     // if ($result->num_rows > 0) {
     //     $cekuser = false;
     //     while ($row = $result->fetch_assoc()) {
-    //         if(!isset($row["idplayer2"]) || $row["idplayer2"]!=null || $row["idplayer2"]!=""){
+    //         if(!isset($row["idplayer2"]) || $row["idplayer2"]!=NULL || $row["idplayer2"]!=""){
     //             $idplayer2temp = $row["idplayer2"];
     //             $cekuser = true;
     //         }
@@ -839,7 +839,7 @@ function saveStrategy($db){
     $mapping = $_POST['mapping'];
     $queryCreate = "INSERT INTO strategy        
         VALUES (
-        '',
+        NULL,
         '$idPlayer',
         '$strategyname',
         '$mapping')";
@@ -998,7 +998,7 @@ function createMatch($db){
         // echo "Cek5\n";
         $date = date('Y-m-d H:i:s');
         $queryInsert = "INSERT into pvpmatch values (
-            '',
+            NULL,
             '$date',
             $idplayer1,
             $strategyplayer1,            
@@ -1009,7 +1009,7 @@ function createMatch($db){
             $idplayer1,
             '1',
             '0',
-            null       
+            NULL       
         )";
         $resultInsert = mysqli_query($db,$queryInsert);
         if($resultInsert){
@@ -1222,7 +1222,7 @@ function insertLogMatch($db){
     $idPlayer = $_POST['idPlayer'];
     $queryCreate = "INSERT INTO logmatch        
         VALUES (
-        '',
+        NULL,
         '$idMatch',
         '$barisAsal',
         '$kolomAsal',
