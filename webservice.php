@@ -20,7 +20,6 @@ $db = mysqli_connect($hostname, $username, $password, $dbname) OR DIE ("Unable t
 if (isset($_GET['action'])) {
     $action = $_GET['action'];
 }
-
 if (isset($_GET['test'])) {
     test($db);
 }
@@ -331,10 +330,15 @@ function login($db){
         }
         
         if(password_verify($password, $passDB)){
-        //    echo "ID: ".$id. " Name: ".$name. " Gender ".$gender. " Phone ".$phone. " Birthdate ".$birthdate;
-            echo json_encode($returnData);
-            mysqli_close($db);
-            return;
+        //    echo "ID: ".$id. " Name: ".$name. " Gender ".$gender. " Phone ".$phone. " Birthdate ".$birthdate;           
+            $idplayer = $returnData["idplayer"];
+            $queryUpdate = "UPDATE pvpmatch set statusmatch = 1 WHERE (idplayer1 = $idplayer or idplayer2 = $idplayer) and statusmatch = 0";
+            $resultUpdate = mysqli_query($db, $queryUpdate);    
+            if($resultUpdate) {
+                echo json_encode($returnData);    
+                mysqli_close($db);
+            }        
+            return;           
         }
         else{
             $returnData["status"] = "2";
