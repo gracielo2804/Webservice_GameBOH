@@ -1094,7 +1094,7 @@ function quickJoinLobby($db){
         $queryupdate = "UPDATE pvplobby set idplayer2 = '$idPlayer', strategyplayer2 = '$idStrategy' where id= '".$availableLobby[$selectedindex]["id"]."' ";
         $resultUpdate = mysqli_query($db, $queryupdate);    
         
-        $query = "SELECT a.name, b.strategyname FROM user a, strategy b WHERE b.id = '".$availableLobby[$selectedindex]["strategyplayer1"]."' ";
+        $query = "SELECT a.name, b.strategyname FROM user a, strategy b WHERE b.id = '".$availableLobby[$selectedindex]["strategyplayer1"]."' and a.id = b.idplayer";
         $result = mysqli_query($db, $query);
         if (mysqli_num_rows($result)>0) {
             while ($row = mysqli_fetch_assoc($result)) {
